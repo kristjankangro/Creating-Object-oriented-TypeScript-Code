@@ -1,20 +1,17 @@
-export class CheckingAccount{
-	constructor(public title: string) {}
-	
-	private _balance: number=0;
-	
-	get balance() {
-		return this._balance;
-	}
-	
-	set balance(value: number) {
-		this._balance = value;
-	}
-	
-	updateBalance(amount: number){
+import {BankAccount} from "./bank-account.ts";
+import {AccountType} from "./account-type.ts";
 
-		console.log("deposit");
-		this._balance += amount;
+export class CheckingAccount extends BankAccount {
+	accountType = AccountType.Checking;
+
+	getAccountInfo() {
+		return {
+
+		};
 	}
 
+	constructor(accountSettings: any) {
+		super(accountSettings);
+		this.accountType = AccountType.Checking;
+	}
 }

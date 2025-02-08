@@ -1,86 +1,100 @@
-import './style.css'
 import {CheckingAccount} from "./checkingAccount.ts";
-import {person} from "./Person.ts";
-
-//2 intro
-{
-// #### Create object using object literal
-	const objLiteral = {
-		balance: 500
-	};
-
-// #### Create object using a class
-	class ClassObject {
-		balance = 1000;
-	}
-
-	const classObj = new ClassObject();
-
-// #### Create object using a function
-	function FunctionObject() {
-		return {balance: 9000}
-	}
-
-	const functionObj = FunctionObject();
-
-// #### Create object using Object.create()
-	const objCreate = Object.create(objLiteral);
-	const total = objLiteral.balance + classObj.balance + functionObj.balance + objCreate.balance;
-
-	document.querySelector<HTMLDivElement>('#app')!.innerHTML = `
-   <h2>Welcome to Acme Bank!</h2><br /><h5>Your account balances:</h5><br />
-        Object Literal Object Balance: $${objLiteral.balance}
-        <br />
-        Class Object Balance: $${classObj.balance}
-        <br />
-        Function Constructor Object Balance: $${functionObj.balance}
-        <br />
-        Object.create() Object Balance: $${objCreate.balance}
-
-        <br /><br />
-        <strong>Total:</strong> $${total}
-`
-
-// setupCounter(document.querySelector<HTMLButtonElement>('#counter')!)
-}
-
-//3 class & object
-
-class Renderer {
-	static render(html: string) {
-		document.querySelector('#app')!.innerHTML = html;
-	}
-}
+import {BankAccount} from "./bank-account.ts";
+import {SavingsAccount} from "./savings-account.ts";
+import { AccountList } from "./account-list.ts";
+import {Renderer} from "./renderer.ts";
+import {AccountType} from "./account-type.ts";
 
 class Main {
-
 	checkingAccount: CheckingAccount;
-	constructor() {
-		this.checkingAccount = new CheckingAccount("Kristjan Kangro arveldus");
-		this.renderAccount()
+	savingsAccount: SavingsAccount;
+	currentAccount: BankAccount = BankAccount.Empty;
+
+	constructor(private renderer: Renderer) {
+		// Create CheckingAccount instance
+		this.checkingAccount = new CheckingAccount({
+			id: 1,
+			title: 'Jane Doe Checking',
+			balance: 5000
+		});
+		this.savingsAccount = new SavingsAccount({
+			id: 100,
+			title: 'Jane Doe Savings',
+			balance: 10000,
+			interestRate: 2.5
+		});
+		let html = this.renderAccounts();
+		this.renderer.render('<h2>Welcome to Acme Bank!</h2><br /><h5>Your Accounts:</h5><br />' + html);
 	}
 
-	renderAccount() {
-		console.log('render account');
-		const html = `<h1>${this.checkingAccount.title}</h1>
-Amount: ${this.checkingAccount.balance}
-<input type="number" id="depositWithdrawalAmount" placeholder="deposit"/>
-<button id="deposit" onclick="main.depositWithDrawal()">deposit</button>
-<button id="withdraw" onclick="main.depositWithDrawal()">withdraw</button>
-`;
-		Renderer.render(html)
+	renderAccounts() {
+		let acctsHtml: string = '';
+		const accList = new AccountList();
+		accList.add(this.checkingAccount);
+		accList.add(this.savingsAccount);
+
+		accList.getAccounts().forEach((acct) => {
+			acctsHtml += acct.title + '<br />';
+		});
+		return acctsHtml;
 	}
 
-	depositWithDrawal() {
+	changeView(view?: string) {
+		switch (view) {
+			case 'checking':
+				this.currentAccount = this.checkingAccount;
+				break;
+			case 'savings':
+				this.currentAccount = this.savingsAccount;
+				break;
+		}
+		this.renderAccount(this.currentAccount);
+	}
+
+	renderAccount(account: BankAccount) {
+		const accountType = AccountType[account.accountType];
+		const html = `
+                <h3>${accountType} Account</h3>
+                <br />
+                <span class="label">Owner:</span> ${account.title}
+                <br />
+                <span class="label">Balance:</span> $${account.balance.toFixed(2)}
+                <br /><br />
+                $<input type="text" id="depositWithdrawalAmount">&nbsp;&nbsp;
+                <button onclick="main.depositWithDrawal(true)">Deposit</button>&nbsp;
+                <button onclick="main.depositWithDrawal(false)">Withdrawal</button>&nbsp;
+            `;
+		this.renderer.render(html);
+	}
+
+	depositWithDrawal(deposit: boolean) {
 		let amountInput: HTMLInputElement = document.querySelector('#depositWithdrawalAmount')!;
 		let amount = +amountInput.value;
-		console.log(amount);
-			this.checkingAccount.updateBalance(amount);
-		this.renderAccount();
+		let error;
+		try {
+			if (deposit) {
+				this.currentAccount.deposit(amount);
+			}
+			else {
+				this.currentAccount.withdrawal(amount);
+			}
+		}
+		catch (e) {
+			error = e as Error;
+		}
+
+		this.renderAccount(this.currentAccount);
+		if (error) {
+			this.renderer.renderError(error.message);
+		}
 	}
 }
 
-const main = new Main();
+// Create main object and add handlers for it
+const renderer = new Renderer(document.querySelector('#viewTemplate')!);
+const main = new Main(renderer);
 
+// Quick and easy way to expose a global API that can hook to the Main object
+// so that we can get to it from click and events and others.
+// Yes, there are other ways but that's not the focus of this demo
 (<any>window).main = main;
-(<any>window).person = person;
