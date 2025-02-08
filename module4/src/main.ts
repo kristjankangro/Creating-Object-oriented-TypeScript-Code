@@ -4,11 +4,12 @@ import {SavingsAccount} from "./savings-account.ts";
 import { AccountList } from "./account-list.ts";
 import {Renderer} from "./renderer.ts";
 import {AccountType} from "./account-type.ts";
+import "./styles.css"
 
 class Main {
 	checkingAccount: CheckingAccount;
 	savingsAccount: SavingsAccount;
-	currentAccount: BankAccount = BankAccount.Empty;
+	currentAccount: BankAccount | undefined;
 
 	constructor(private renderer: Renderer) {
 		// Create CheckingAccount instance
@@ -48,7 +49,7 @@ class Main {
 				this.currentAccount = this.savingsAccount;
 				break;
 		}
-		this.renderAccount(this.currentAccount);
+		if (this.currentAccount != undefined) this.renderAccount(this.currentAccount);
 	}
 
 	renderAccount(account: BankAccount) {
@@ -68,6 +69,7 @@ class Main {
 	}
 
 	depositWithDrawal(deposit: boolean) {
+		if (this.currentAccount == undefined) return;
 		let amountInput: HTMLInputElement = document.querySelector('#depositWithdrawalAmount')!;
 		let amount = +amountInput.value;
 		let error;
