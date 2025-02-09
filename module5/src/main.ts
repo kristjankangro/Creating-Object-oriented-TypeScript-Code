@@ -67,7 +67,7 @@ class Main {
 		accList.add(this.checkingAccount);
 		accList.add(this.savingsAccount);
 
-		accList.getAccounts().forEach((acct, index) => {
+		accList.getAccounts().forEach((acct) => {
 			acctsHtml += acct.title + '<br />';
 		});
 		return acctsHtml;
@@ -93,7 +93,7 @@ class Main {
 	depositWithDrawal(deposit: boolean, atm?: boolean) {
 		let amountInput: HTMLInputElement = document.querySelector('#depositWithdrawalAmount')!;
 		let amount = +amountInput.value;
-		let error:Error;
+		let error;
 		try {
 			if (deposit) {
 				if (atm) {

@@ -4,12 +4,12 @@ import { AccountSettings } from './interfaces';
 
 
 export class SavingsAccount extends BankAccount {
-    private _interestRate: number;
+    private _interestRate: number = 0;
     accountType = AccountType.Savings;
 
     constructor(accountSettings: AccountSettings) {
         super(accountSettings);
-        this._interestRate = accountSettings.interestRate;
+        this._interestRate = accountSettings.interestRate ?? 0;
 
         // Simulate interest over time
         setInterval(() => {
